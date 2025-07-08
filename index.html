@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Checklist Visual</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #f4f4f4;
+      border-radius: 8px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+    input[type="file"],
+    input[type="text"],
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    #mensagem {
+      text-align: center;
+      font-weight: bold;
+      color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <h2>Checklist Visual do Dia</h2>
+  <form id="formulario">
+    <label for="nome">Seu nome:</label>
+    <input type="text" id="nome" required>
+
+    <label for="foto1">1. Foto da geladeira da Coca-cola:</label>
+    <input type="file" id="foto1" accept="image/*" capture="environment" required>
+
+    <label for="foto2">2. Foto da geladeira da cerveja:</label>
+    <input type="file" id="foto2" accept="image/*" capture="environment" required>
+
+    <label for="foto3">3. Foto da geladeira dos energéticos:</label>
+    <input type="file" id="foto3" accept="image/*" capture="environment" required>
+
+    <label for="foto4">4. Foto do expositor de cigarros:</label>
+    <input type="file" id="foto4" accept="image/*" capture="environment" required>
+
+    <label for="foto5">5. Foto do pátio limpo:</label>
+    <input type="file" id="foto5" accept="image/*" capture="environment" required>
+
+    <label for="foto6">6. Foto das bombas limpas:</label>
+    <input type="file" id="foto6" accept="image/*" capture="environment" required>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <p id="mensagem"></p>
+
+  <script>
+    const formulario = document.getElementById('formulario');
+    const mensagem = document.getElementById('mensagem');
+
+    formulario.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById('nome').value;
+      const fotos = [];
+
+      for (let i = 1; i <= 6; i++) {
+        const input = document.getElementById('foto' + i);
+        if (!input.files[0]) {
+          mensagem.innerText = `Foto ${i} está faltando.`;
+          return;
+        }
+        const reader = new FileReader();
+        const file = input.files[0];
+
+        fotos.push(await new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        }));
+      }
+
+      const dados = {
+        nome,
+        fotos
+      };
+
+      try {
+        const resposta = await fetch("https://script.google.com/macros/s/AKfycbzdfqyBqkCZj_oDZ45FLDjCPXFOYBDxFjAagt-vdUji_rtcXNUPcMcWBFdQMXPP8G1LKQ/exec", {
+          method: "POST",
+          body: JSON.stringify(dados),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        const texto = await resposta.text();
+        mensagem.innerText = texto === "OK" ? "✅ Enviado com sucesso!" : "❌ Erro: " + texto;
+      } catch (erro) {
+        mensagem.innerText = "❌ Erro ao enviar: " + erro;
+      }
+    });
+  </script>
+</body>
+</html>
